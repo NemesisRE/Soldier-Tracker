@@ -251,6 +251,19 @@ _QS_fnc_isIncapacitated = {
     };
     _r;
 };
+_QS_fnc_hasGPSDevice = {
+    private _r = FALSE;
+    if ("ACE_microDAGR" in items player) then {
+        _r = TRUE;
+    } else {
+    {
+            if (_x isKindOf ["ItemGPS", configFile >> "CfgWeapons"] || {_x isKindOf ["UavTerminal_base", configFile >> "CfgWeapons"]} || {_x isKindOf ["ItemcTab", configFile >> "CfgWeapons"]}) then {
+                _r = TRUE;
+            };
+        } forEach assignedItems player;
+    };
+    _r;
+};
 _QS_fnc_iconColor = {
     params [['_v',objNull],['_ds',1],'_QS_ST_X',['_ms',1]];
     _u = effectiveCommander _v;
@@ -933,13 +946,7 @@ _QS_fnc_mapVehicleShowCrew = {};
 _QS_fnc_iconDrawMap = {
     _m = _this select 0;
     _QS_ST_X = [] call (missionNamespace getVariable 'QS_ST_X');
-    private _hasGPSDevice = ("ACE_microDAGR" in items player) || {
-        {
-            if (_x isKindOf ["ItemGPS", configFile >> "CfgWeapons"] || {_x isKindOf ["UavTerminal_base", configFile >> "CfgWeapons"]} || {_x isKindOf ["ItemcTab", configFile >> "CfgWeapons"]}) exitWith {true};
-            false
-        } forEach assignedItems player;
-    };
-    if ((_QS_ST_X select 83) && (!(_hasGPSDevice))) exitWith {};
+    if ((_QS_ST_X select 83) && (!(call _QS_fnc_hasGPSDevice))) exitWith {};
     if (diag_tickTime > (missionNamespace getVariable 'QS_ST_updateDraw_map')) then {
         missionNamespace setVariable ['QS_ST_updateDraw_map',(diag_tickTime + 3),FALSE];
         missionNamespace setVariable ['QS_ST_drawArray_map',([1,_QS_ST_X] call (_QS_ST_X select 46)),FALSE];
@@ -1003,16 +1010,10 @@ _QS_fnc_iconDrawMap = {
     };
 };
 _QS_fnc_iconDrawGPS = {
-    private _hasGPSDevice = ("ACE_microDAGR" in items player) || {
-        {
-            if (_x isKindOf ["ItemGPS", configFile >> "CfgWeapons"] || {_x isKindOf ["UavTerminal_base", configFile >> "CfgWeapons"]} || {_x isKindOf ["ItemcTab", configFile >> "CfgWeapons"]}) exitWith {true};
-            false
-        } forEach assignedItems player;
-    };
     if (
         (!('MinimapDisplay' in ((infoPanel 'left') + (infoPanel 'right')))) ||
         {(visibleMap)} ||
-        {((_QS_ST_X select 84) && (!(_hasGPSDevice)))}
+        {((_QS_ST_X select 84) && (!(call _QS_fnc_hasGPSDevice)))}
     ) exitWith {};
     _m = _this select 0;
     _QS_ST_X = [] call (missionNamespace getVariable 'QS_ST_X');
@@ -1717,22 +1718,11 @@ if (_QS_ST_X select 2) then {
                 _groupUpdateDelay = diag_tickTime + _groupUpdateDelay_timer;
             };
             if (_gpsRequired) then {
-                private _hasGPSDevice = ("ACE_microDAGR" in items player) || {
-                    {
-                        if (_x isKindOf ["ItemGPS", configFile >> "CfgWeapons"] || {_x isKindOf ["UavTerminal_base", configFile >> "CfgWeapons"]} || {_x isKindOf ["ItemcTab", configFile >> "CfgWeapons"]}) exitWith {true};
-                        false
-                    } forEach assignedItems player;
-                };
-                if (!(_hasGPSDevice)) then {
+                if (!(call _QS_fnc_hasGPSDevice)) then {
                     setGroupIconsVisible [FALSE,FALSE];
                     waitUntil {
                         uiSleep 0.25;
-                        ("ACE_microDAGR" in items player) || {
-                            {
-                                if (_x isKindOf ["ItemGPS", configFile >> "CfgWeapons"] || {_x isKindOf ["UavTerminal_base", configFile >> "CfgWeapons"]} || {_x isKindOf ["ItemcTab", configFile >> "CfgWeapons"]}) exitWith {true};
-                                false
-                            } forEach assignedItems player;
-                        };
+                        call _QS_fnc_hasGPSDevice;
                     };
                 };
             };
